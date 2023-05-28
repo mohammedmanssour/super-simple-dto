@@ -2,15 +2,15 @@
 
 namespace MohammedManssour\DTO\Concerns;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
 
 trait AsDTO
 {
     public static function fromRequest(Request $request, bool $useAll = false): static
     {
-        if ($useAll || !method_exists($request, 'validated')) {
+        if ($useAll || ! method_exists($request, 'validated')) {
             return static::fromCollection(
                 collect($request->all())
             );
@@ -41,11 +41,13 @@ trait AsDTO
         $collection->each(function ($value, $key) use (&$object) {
             if (method_exists($object, $key)) {
                 $object->{$key}($value);
+
                 return;
             }
 
             if (property_exists($object, $key)) {
                 $object->{$key} = $value;
+
                 return;
             }
         });
@@ -60,15 +62,17 @@ trait AsDTO
         foreach ($attributes as $key => $value) {
             if ($value instanceof \UnitEnum) {
                 $attributes[$key] = $value->value;
+
                 continue;
             }
 
-            if (!is_object($value)) {
+            if (! is_object($value)) {
                 continue;
             }
 
             if (method_exists($value, 'toArray')) {
                 $attributes[$key] = $value->toArray();
+
                 continue;
             }
             $attributes[$key] = (array) $value;

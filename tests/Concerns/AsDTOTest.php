@@ -2,14 +2,14 @@
 
 namespace MohammedManssour\DTO\Tests\Concerns;
 
-use Mockery;
 use Illuminate\Http\Request;
-use PHPUnit\Framework\TestCase;
-use MohammedManssour\DTO\Tests\Stubs\User;
-use MohammedManssour\DTO\Tests\Stubs\UserData;
+use Mockery;
 use MohammedManssour\DTO\Tests\Stubs\BalanceData;
 use MohammedManssour\DTO\Tests\Stubs\FormRequest;
 use MohammedManssour\DTO\Tests\Stubs\Status;
+use MohammedManssour\DTO\Tests\Stubs\User;
+use MohammedManssour\DTO\Tests\Stubs\UserData;
+use PHPUnit\Framework\TestCase;
 
 class AsDTOTest extends TestCase
 {
@@ -24,13 +24,14 @@ class AsDTOTest extends TestCase
             'status' => 'active',
             'balance' => [
                 'bitcoin' => 10.01,
-                'usdollar' => 1000
+                'usdollar' => 1000,
             ],
         ];
     }
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromCollection
      * */
     public function it_converts_collection_to_dto()
@@ -42,6 +43,7 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromArray
      * */
     public function it_converts_array_to_dto()
@@ -53,6 +55,7 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromRequest
      * */
     public function it_converts_request_to_dto_with_using_all_method()
@@ -67,6 +70,7 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromRequest
      * */
     public function it_converts_request_to_dto_with_using_all_method_because_validated_method_does_not_exists()
@@ -81,6 +85,7 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromRequest
      * */
     public function it_converts_request_to_dto_without_using_all_method()
@@ -96,6 +101,7 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromModel
      * */
     public function it_converts_model_to_dto()
@@ -108,6 +114,7 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::toArray
      * */
     public function it_converts_dto_to_array()
@@ -119,12 +126,13 @@ class AsDTOTest extends TestCase
 
     /**
      * @test
+     *
      * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromCollection
      * */
     public function it_only_handles_available_data()
     {
         $data = [
-            'name' => 'Mohammed Manssour'
+            'name' => 'Mohammed Manssour',
         ];
         $dto = UserData::fromArray($data);
 
