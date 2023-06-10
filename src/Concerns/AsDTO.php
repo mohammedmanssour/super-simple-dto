@@ -2,7 +2,7 @@
 
 namespace MohammedManssour\DTO\Concerns;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -11,7 +11,7 @@ trait AsDTO
 {
     public static function fromRequest(Request $request, bool $useAll = false): static
     {
-        if ($useAll || !method_exists($request, 'validated')) {
+        if ($useAll || ! method_exists($request, 'validated')) {
             return static::fromCollection(
                 collect($request->all())
             );
@@ -61,17 +61,19 @@ trait AsDTO
         $attributes = (array) $this;
 
         foreach ($attributes as $key => $value) {
-            if (!is_object($value)) {
+            if (! is_object($value)) {
                 continue;
             }
 
             if ($value instanceof \UnitEnum) {
                 $attributes[$key] = $value->value;
+
                 continue;
             }
 
-            if ($value instanceof Carbon) {
+            if ($value instanceof CarbonInterface) {
                 $attributes[$key] = $value;
+
                 continue;
             }
 
