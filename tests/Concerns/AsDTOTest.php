@@ -2,7 +2,9 @@
 
 namespace MohammedManssour\DTO\Tests\Concerns;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Mockery;
 use MohammedManssour\DTO\Tests\Stubs\BalanceData;
 use MohammedManssour\DTO\Tests\Stubs\FormRequest;
@@ -21,6 +23,7 @@ class AsDTOTest extends TestCase
         $this->data = [
             'name' => 'Mohammed Manssour',
             'email' => 'hello@mohammedmanssour.me',
+            'registered_at' => '2023-06-10',
             'status' => 'active',
             'balance' => [
                 'bitcoin' => 10.01,
@@ -121,7 +124,12 @@ class AsDTOTest extends TestCase
     {
         $dto = UserData::fromArray($this->data);
 
-        $this->assertEquals($this->data, $dto->toArray());
+        $this->assertEquals(
+            Arr::except($this->data, 'registered_at'),
+            Arr::except($dto->toArray(), 'registered_at')
+        );
+
+        $this->assertInstanceOf(Carbon::class, $dto->toArray()['registered_at']);
     }
 
     /**
