@@ -152,6 +152,27 @@ class AsDTOTest extends TestCase
         $this->assertEquals($data, $dto->toArray());
     }
 
+    /**
+     * @test
+     * @covers \MohammedManssour\DTO\Concerns\AsDTO::isset
+     * */
+    public function it_finds_if_property_was_isset_or_not()
+    {
+        $data = UserData::fromArray([
+            'name' => 'Mohammed Manssour',
+            'email' => null
+        ]);
+
+        // native function
+        $this->assertTrue(isset($data->name));
+        $this->assertFalse(isset($data->email));
+        $this->assertFalse(isset($data->status));
+
+        $this->assertTrue($data->isset('name'));
+        $this->assertTrue($data->isset('email'));
+        $this->assertFalse($data->isset('status'));
+    }
+
     private function assertDTO(UserData $dto)
     {
         $this->assertEquals($this->data['name'], $dto->name);

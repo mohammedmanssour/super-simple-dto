@@ -11,7 +11,7 @@ class UserData
 
     public string $name;
 
-    public string $email;
+    public ?string $email;
 
     public BalanceData $balance;
 

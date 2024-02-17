@@ -2,16 +2,17 @@
 
 namespace MohammedManssour\DTO\Concerns;
 
+use ReflectionProperty;
 use Carbon\CarbonInterface;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 trait AsDTO
 {
     public static function fromRequest(Request $request, bool $useAll = false): static
     {
-        if ($useAll || ! method_exists($request, 'validated')) {
+        if ($useAll || !method_exists($request, 'validated')) {
             return static::fromCollection(
                 collect($request->all())
             );
@@ -61,7 +62,7 @@ trait AsDTO
         $attributes = (array) $this;
 
         foreach ($attributes as $key => $value) {
-            if (! is_object($value)) {
+            if (!is_object($value)) {
                 continue;
             }
 
@@ -86,5 +87,17 @@ trait AsDTO
         }
 
         return $attributes;
+    }
+
+    /**
+     * checks if a property was initialized
+     *
+     * This helper method is different from the php isset function
+     * The native issue function will return false if the property is initialized with `false` or `null`
+     *  This helper will return false only and only if the property was not initialized
+     */
+    public function isset($key)
+    {
+        return (new ReflectionProperty(self::class, $key))->isInitialized($this);
     }
 }
