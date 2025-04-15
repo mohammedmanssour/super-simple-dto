@@ -29,6 +29,16 @@ class AsDTOTest extends TestCase
                 'bitcoin' => 10.01,
                 'usdollar' => 1000,
             ],
+            'wallets' => [
+                [
+                    'type' => 'bitcoin',
+                    'balance' => 1001
+                ],
+                [
+                    'type' => 'usdollar',
+                    'balance' => 100000
+                ],
+            ]
         ];
     }
 
@@ -184,5 +194,11 @@ class AsDTOTest extends TestCase
 
         $this->assertInstanceOf(Status::class, $dto->status);
         $this->assertEquals(Status::Active, $dto->status);
+
+        $this->assertIsArray($dto->wallets);
+        $this->assertEquals('bitcoin', $dto->wallets[0]->type);
+        $this->assertEquals(1001, $dto->wallets[0]->balance);
+        $this->assertEquals('usdollar', $dto->wallets[1]->type);
+        $this->assertEquals(100000, $dto->wallets[1]->balance);
     }
 }

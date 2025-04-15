@@ -19,6 +19,8 @@ class UserData
 
     public Carbon $registered_at;
 
+    public array $wallets;
+
     public function balance($value)
     {
         $this->balance = BalanceData::fromArray($value);
@@ -32,5 +34,10 @@ class UserData
     public function registered_at($value)
     {
         $this->registered_at = Carbon::parse($value);
+    }
+
+    public function wallets($value)
+    {
+        $this->wallets = collect($value)->map(fn($item) => $item instanceof WalletData ? $item : WalletData::fromArray($item))->all();
     }
 }

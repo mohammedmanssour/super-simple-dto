@@ -62,31 +62,38 @@ trait AsDTO
         $attributes = (array) $this;
 
         foreach ($attributes as $key => $value) {
-            if (!is_object($value)) {
-                continue;
-            }
-
-            if ($value instanceof \UnitEnum) {
-                $attributes[$key] = $value->value;
-
-                continue;
-            }
-
-            if ($value instanceof CarbonInterface) {
-                $attributes[$key] = $value;
-
-                continue;
-            }
-
-            if (method_exists($value, 'toArray')) {
-                $attributes[$key] = $value->toArray();
-
-                continue;
-            }
-            $attributes[$key] = (array) $value;
+            $attributes[$key] = $this->getArraybleValue($value);
         }
 
         return $attributes;
+    }
+
+    protected function getArraybleValue($value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $subKey => $subValue) {
+                $value[$subKey] = $this->getArraybleValue($subValue);
+            }
+            return $value;
+        }
+
+        if (!is_object($value)) {
+            return $value;
+        }
+
+        if ($value instanceof \UnitEnum) {
+            return $value->value;
+        }
+
+        if ($value instanceof CarbonInterface) {
+            return $value;
+        }
+
+        if (method_exists($value, 'toArray')) {
+            return $value->toArray();
+        }
+
+        return (array) $value;
     }
 
     /**
