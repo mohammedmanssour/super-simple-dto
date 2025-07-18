@@ -4,6 +4,7 @@ namespace MohammedManssour\DTO\Tests\Stubs;
 
 use Carbon\Carbon;
 use MohammedManssour\DTO\Concerns\AsDTO;
+use MohammedManssour\DTO\Support\MapInto;
 
 class UserData
 {
@@ -19,25 +20,11 @@ class UserData
 
     public Carbon $registered_at;
 
+    #[MapInto(WalletData::class)]
     public array $wallets;
 
-    public function balance($value)
-    {
-        $this->balance = BalanceData::fromArray($value);
-    }
-
-    public function status($value)
-    {
-        $this->status = Status::from($value);
-    }
-
-    public function registered_at($value)
+    public function setRegisteredAt($value)
     {
         $this->registered_at = Carbon::parse($value);
-    }
-
-    public function wallets($value)
-    {
-        $this->wallets = collect($value)->map(fn($item) => $item instanceof WalletData ? $item : WalletData::fromArray($item))->all();
     }
 }

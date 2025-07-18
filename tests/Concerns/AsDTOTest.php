@@ -2,16 +2,18 @@
 
 namespace MohammedManssour\DTO\Tests\Concerns;
 
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Mockery;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
+use Illuminate\Http\Request;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+use MohammedManssour\DTO\Tests\Stubs\User;
+use MohammedManssour\DTO\Tests\Stubs\Status;
+use MohammedManssour\DTO\Tests\Stubs\UserData;
 use MohammedManssour\DTO\Tests\Stubs\BalanceData;
 use MohammedManssour\DTO\Tests\Stubs\FormRequest;
-use MohammedManssour\DTO\Tests\Stubs\Status;
-use MohammedManssour\DTO\Tests\Stubs\User;
-use MohammedManssour\DTO\Tests\Stubs\UserData;
-use PHPUnit\Framework\TestCase;
+use MohammedManssour\DTO\Tests\Stubs\WalletData;
 
 class AsDTOTest extends TestCase
 {
@@ -30,10 +32,10 @@ class AsDTOTest extends TestCase
                 'usdollar' => 1000,
             ],
             'wallets' => [
-                [
+                WalletData::from([
                     'type' => 'bitcoin',
                     'balance' => 1001
-                ],
+                ]),
                 [
                     'type' => 'usdollar',
                     'balance' => 100000
@@ -42,11 +44,7 @@ class AsDTOTest extends TestCase
         ];
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromCollection
-     * */
+    #[Test]
     public function it_converts_collection_to_dto()
     {
         $dto = UserData::fromCollection(collect($this->data));
@@ -54,11 +52,7 @@ class AsDTOTest extends TestCase
         $this->assertDTO($dto);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromArray
-     * */
+    #[Test]
     public function it_converts_array_to_dto()
     {
         $dto = UserData::fromArray($this->data);
@@ -66,11 +60,7 @@ class AsDTOTest extends TestCase
         $this->assertDTO($dto);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromRequest
-     * */
+    #[Test]
     public function it_converts_request_to_dto_with_using_all_method()
     {
         $request = Mockery::mock(Request::class);
@@ -81,11 +71,7 @@ class AsDTOTest extends TestCase
         $this->assertDTO($dto);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromRequest
-     * */
+    #[Test]
     public function it_converts_request_to_dto_with_using_all_method_because_validated_method_does_not_exists()
     {
         $request = Mockery::mock(Request::class);
@@ -96,11 +82,7 @@ class AsDTOTest extends TestCase
         $this->assertDTO($dto);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromRequest
-     * */
+    #[Test]
     public function it_converts_request_to_dto_without_using_all_method()
     {
         $request = Mockery::mock(FormRequest::class);
@@ -112,11 +94,7 @@ class AsDTOTest extends TestCase
         $this->assertDTO($dto);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromModel
-     * */
+    #[Test]
     public function it_converts_model_to_dto()
     {
         $model = (new User())->forceFill($this->data);
@@ -125,15 +103,12 @@ class AsDTOTest extends TestCase
         $this->assertDTO($dto);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::toArray
-     * */
+    #[Test]
     public function it_converts_dto_to_array()
     {
         $dto = UserData::fromArray($this->data);
 
+        $this->data['wallets'][0] = $this->data['wallets'][0]->toArray();
         $this->assertEquals(
             Arr::except($this->data, 'registered_at'),
             Arr::except($dto->toArray(), 'registered_at')
@@ -142,11 +117,7 @@ class AsDTOTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $dto->toArray()['registered_at']);
     }
 
-    /**
-     * @test
-     *
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::fromCollection
-     * */
+    #[Test]
     public function it_only_handles_available_data()
     {
         $data = [
@@ -162,10 +133,7 @@ class AsDTOTest extends TestCase
         $this->assertEquals($data, $dto->toArray());
     }
 
-    /**
-     * @test
-     * @covers \MohammedManssour\DTO\Concerns\AsDTO::isset
-     * */
+    #[Test]
     public function it_finds_if_property_was_isset_or_not()
     {
         $data = UserData::fromArray([
@@ -181,6 +149,24 @@ class AsDTOTest extends TestCase
         $this->assertTrue($data->isset('name'));
         $this->assertTrue($data->isset('email'));
         $this->assertFalse($data->isset('status'));
+    }
+
+    #[Test]
+    public function it_works_assigns_complex_values()
+    {
+        $this->data['status'] = Status::Active;
+        $this->data['balance'] = BalanceData::fromArray([
+            'bitcoin' => 10.01,
+            'usdollar' => 1000,
+        ]);
+        $dto = UserData::fromArray($this->data);
+
+        $this->assertInstanceOf(BalanceData::class, $dto->balance);
+        $this->assertEquals($this->data['balance']->bitcoin, $dto->balance->bitcoin);
+        $this->assertEquals($this->data['balance']->usdollar, $dto->balance->usdollar);
+
+        $this->assertInstanceOf(Status::class, $dto->status);
+        $this->assertEquals(Status::Active, $dto->status);
     }
 
     private function assertDTO(UserData $dto)

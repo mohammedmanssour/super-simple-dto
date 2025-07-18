@@ -7,9 +7,38 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use MohammedManssour\DTO\Support\Property;
 
 trait AsDTO
 {
+    public static function from(mixed ...$args): static
+    {
+        // Check if we have a single positional argument that is a known type
+        if (count($args) === 1 && is_numeric(array_key_first($args))) {
+            $data = reset($args);
+
+            if ($data instanceof Request) {
+                return static::fromRequest($data);
+            }
+
+            if ($data instanceof Model) {
+                return static::fromModel($data);
+            }
+
+            if ($data instanceof Collection) {
+                return static::fromCollection($data);
+            }
+
+            if (is_array($data)) {
+                return static::fromArray($data);
+            }
+
+            throw new \InvalidArgumentException('Unsupported data type for DTO conversion');
+        }
+
+        return static::fromCollection(collect($args));
+    }
+
     public static function fromRequest(Request $request, bool $useAll = false): static
     {
         if ($useAll || !method_exists($request, 'validated')) {
@@ -41,17 +70,7 @@ trait AsDTO
     {
         $object = new static();
         $collection->each(function ($value, $key) use (&$object) {
-            if (method_exists($object, $key)) {
-                $object->{$key}($value);
-
-                return;
-            }
-
-            if (property_exists($object, $key)) {
-                $object->{$key} = $value;
-
-                return;
-            }
+            (new Property($object, $key))->assign($value);
         });
 
         return $object;
@@ -105,6 +124,6 @@ trait AsDTO
      */
     public function isset($key)
     {
-        return (new ReflectionProperty(self::class, $key))->isInitialized($this);
+        return (new ReflectionProperty(static::class, $key))->isInitialized($this);
     }
 }

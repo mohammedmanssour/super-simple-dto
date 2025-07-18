@@ -4,7 +4,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/mohammedmanssour/super-simple-dto/run-tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/mohammedmanssour/super-simple-dto/actions/workflows/run-tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/mohammedmanssour/super-simple-dto.svg?style=flat-square)](https://packagist.org/packages/mohammedmanssour/super-simple-dto)
 
-Creating data transfer objects with the power of php objects. No php attributes, no reflection api, and no other under the hook work.
+Creating data transfer objects with the power of php objects. Simple, lightweight, and efficient DTO conversion with automatic type handling.
 
 This is a laravel package and `laravel/framework` is part of the package dependencies. Please, make sure you have no problem with that before using.
 
@@ -25,7 +25,6 @@ composer require mohammedmanssour/super-simple-dto
 1. Apply the `AsDTO` trait to your data object
 
 ```php
-
 use MohammedManssour\DTO\Concerns\AsDTO;
 
 class UserData
@@ -33,62 +32,106 @@ class UserData
     use AsDTO;
 
     public string $name;
-
     public string $email;
-
     public BalanceData $balance;
-
     public Status $status;
 }
 ```
 
-2. use on of these static methods to convert data into DTP:
-    1. `fromCollection`: converts collections to DTO objects.
-    2. `fromArray`: converts array to DTO objects.
-    3. `fromModel`: converts model to DTO objects. It works with the data available with `$model->getAttributes()` method.
-    4. `fromRequest`: converts laravel requests to DTO objects. It works with the data available with `validated()`. In case `validated` method is not available, it'll use the `all()` method. You can also force using request's `all` method by passing true as a second parameter.
+2. Use one of these static methods to convert data into DTO:
+    - `fromCollection`: converts collections to DTO objects.
+    - `fromArray`: converts array to DTO objects.
+    - `fromModel`: converts model to DTO objects. It works with the data available with `$model->getAttributes()` method.
+    - `fromRequest`: converts laravel requests to DTO objects. It works with the data available with `validated()`. In case `validated` method is not available, it'll use the `all()` method. You can also force using request's `all` method by passing true as a second parameter.
 
 ```php
 UserData::fromCollection(collect([]));
-
 UserData::fromArray([]);
-
 UserData::fromModel($model);
-
 UserData::fromRequest($request);
 ```
 
-### How DTO is populated:
+## Features
 
-The `AsDTO` will assign values to DTO attributes depending of the keys. and attributes that has no key match will not be initialized/assigned
+### Automatic Type Conversion
 
-```php
-$data = [
-    'name' => 'Mohammed Manssour',
-    'email' => 'hello@mohammedmanssour.me'
-];
-$dto = UserData::fromArray();
+The package automatically handles type conversion for:
+- **Enums**: Automatically converts values to enum instances
+- **DTOs**: Automatically converts arrays/objects to other DTO instances
+- **Built-in types**: Handles all PHP built-in types
 
-$this->assertEquals($data['name'], $dto->name);
-$this->assertEquals($data['email'], $dto->email);
+### Array to DTO Collection Mapping with MapInto
 
-$this->assertFalse(isset($dto->balance));
-$this->assertFalse(isset($dto->status));
-```
-
-### Handling special attributes:
-
-In case you have an attribute that needs special care. you can add a method to your dto than have the same name as your attribute and take care of the conversion.
+The `MapInto` attribute allows you to automatically convert arrays of data into arrays of DTO objects. This is particularly useful when working with collections of related data.
 
 ```php
 use MohammedManssour\DTO\Concerns\AsDTO;
+use MohammedManssour\DTO\Support\MapInto;
 
+class WalletData
+{
+    use AsDTO;
+    
+    public string $type;
+    public int $balance;
+}
+
+class UserData
+{
+    use AsDTO;
+    
+    public string $name;
+    public string $email;
+    
+    #[MapInto(WalletData::class)]
+    public array $wallets;
+}
+
+$data = [
+    'name' => 'Mohammed Manssour',
+    'email' => 'hello@mohammedmanssour.me',
+    'wallets' => [
+        ['type' => 'bitcoin', 'balance' => 1000],
+        ['type' => 'ethereum', 'balance' => 500],
+    ]
+];
+
+$user = UserData::fromArray($data);
+
+// $user->wallets will contain an array of WalletData objects
+foreach ($user->wallets as $wallet) {
+    echo $wallet->type . ': ' . $wallet->balance; // Each wallet is a WalletData instance
+}
+```
+
+### Custom Property Setters
+
+You can define custom setter methods for properties that need special handling:
+
+```php
+class UserData
+{
+    use AsDTO;
+    
+    public Carbon $created_at;
+    
+    public function setCreatedAt($value)
+    {
+        $this->created_at = Carbon::parse($value);
+    }
+}
+```
+
+### Type Safety
+
+The package respects PHP type declarations and automatically converts:
+
+```php
 class BalanceData
 {
     use AsDTO;
-
+    
     public float $bitcoin;
-
     public int $usdollar;
 }
 
@@ -101,51 +144,60 @@ enum Status: string
 class UserData
 {
     use AsDTO;
-
-    ....
-
-    public BalanceData $balance;
-
-    public Status $status;
-
-    public function balance($value)
-    {
-        return $this->balance = BalanceData::fromArray($value);
-    }
-
-    public function status($value)
-    {
-        return $this->status = Status::from($value);
-    }
+    
+    public BalanceData $balance;  // Automatically converted from array
+    public Status $status;        // Automatically converted from string
 }
 
 $data = [
     'balance' => [
-        'bitcoin' => 10,
-        'usdollar' => 100
+        'bitcoin' => 10.5,
+        'usdollar' => 1000
     ],
     'status' => 'active'
 ];
 
-$dto = UserData::fromArray($data)
+$dto = UserData::fromArray($data);
 
-$this->assertInstanceOf(BalanceData::class, $dto->balance);
-$this->assertEquals($data['balance']['bitcoin'], $dto->balance->bitcoint);
-$this->assertEquals($data['balance']['usdollar'], $dto->balance->usdollart);
-
-
-$this->assertInstanceOf(Status::class, $dto->status);
-$this->assertEquals(Status::Active, $dto->status);
-
+// $dto->balance is a BalanceData instance
+// $dto->status is a Status enum instance
 ```
 
-## converting DTO to array
+## Property Initialization Check
 
-You can convert dto to array using DTO method
+The package provides a helpful `isset()` method that checks if a property was actually initialized (different from PHP's native `isset()` which returns false for `null` values):
 
 ```php
-$arr = $dto->toArray()
+$dto = UserData::fromArray([
+    'name' => 'Mohammed',
+    'email' => null  // explicitly set to null
+]);
+
+// Native PHP isset
+isset($dto->name);     // true
+isset($dto->email);    // false (because it's null)
+isset($dto->balance);  // false (not initialized)
+
+// DTO isset method
+$dto->isset('name');     // true
+$dto->isset('email');    // true (was explicitly set, even though null)
+$dto->isset('balance');  // false (not initialized)
 ```
+
+## Converting DTO to Array
+
+You can convert any DTO back to an array:
+
+```php
+$dto = UserData::fromArray($data);
+$array = $dto->toArray();
+```
+
+The `toArray()` method handles:
+- Nested DTOs (converts them to arrays recursively)
+- Enums (converts to their scalar values)
+- Carbon instances (keeps as Carbon objects)
+- Arrays of DTOs (converts each DTO to array)
 
 ## Testing
 
