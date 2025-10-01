@@ -7,6 +7,7 @@ use ReflectionProperty;
 use Illuminate\Support\Str;
 use MohammedManssour\DTO\Concerns\AsDTO;
 use MohammedManssour\DTO\Support\MapInto;
+use ReflectionException;
 
 class Property
 {
@@ -48,32 +49,34 @@ class Property
 
     public function assign($value)
     {
-        $setterMethod = 'set' . Str::studly($this->name);
-        if (method_exists($this->object, $setterMethod)) {
-            $this->object->{$setterMethod}($value);
+        try {
+            $setterMethod = 'set' . Str::studly($this->name);
+            if (method_exists($this->object, $setterMethod)) {
+                $this->object->{$setterMethod}($value);
 
-            return;
-        }
+                return;
+            }
 
-        if ($this->hasMapIntoAttribute()) {
-            $this->assignMapInto($value);
-            return;
-        }
+            if ($this->hasMapIntoAttribute()) {
+                $this->assignMapInto($value);
+                return;
+            }
 
-        if ($this->type()?->isBuiltin()) {
-            $this->assignPlain($value);
-            return;
-        }
+            if ($this->type()?->isBuiltin()) {
+                $this->assignPlain($value);
+                return;
+            }
 
-        if ($this->isEnum()) {
-            $this->assignEnum($value);
-            return;
-        }
+            if ($this->isEnum()) {
+                $this->assignEnum($value);
+                return;
+            }
 
-        if ($this->isDTO()) {
-            $this->assignDTO($value);
-            return;
-        }
+            if ($this->isDTO()) {
+                $this->assignDTO($value);
+                return;
+            }
+        } catch(ReflectionException $e) {}
     }
 
     private function assignEnum($value)
