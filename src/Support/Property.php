@@ -35,6 +35,10 @@ class Property
 
     private function isDTO(): bool
     {
+        if ($this->type()?->isBuiltin()) {
+            return false;
+        }
+
         return in_array(
             AsDTO::class,
             class_uses_recursive($this->typeName())
@@ -62,11 +66,6 @@ class Property
                 return;
             }
 
-            if ($this->type()?->isBuiltin()) {
-                $this->assignPlain($value);
-                return;
-            }
-
             if ($this->isEnum()) {
                 $this->assignEnum($value);
                 return;
@@ -76,6 +75,8 @@ class Property
                 $this->assignDTO($value);
                 return;
             }
+
+            $this->assignPlain($value);
         } catch(ReflectionException $e) {}
     }
 
