@@ -21,7 +21,7 @@ class UserData
     public Carbon $registered_at;
 
     #[MapInto(WalletData::class)]
-    public array $wallets;
+    public ?array $wallets;
 
     public function setRegisteredAt($value)
     {

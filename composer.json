@@ -1,6 +1,6 @@
 {
     "name": "mohammedmanssour/super-simple-dto",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "Creating data transfer objects with the power of php objects",
     "keywords": [
         "mohammedmanssour",

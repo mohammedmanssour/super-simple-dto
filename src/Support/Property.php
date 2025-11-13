@@ -104,6 +104,11 @@ class Property
 
     private function assignMapInto($value)
     {
+        if (!$value) {
+            $this->assignPlain($value);
+            return;
+        }
+
         if (!is_iterable($value)) {
             throw new \InvalidArgumentException("MapInto attribute can only be used with array values");
         }
