@@ -2,12 +2,12 @@
 
 namespace MohammedManssour\DTO\Concerns;
 
-use ReflectionProperty;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
 use MohammedManssour\DTO\Support\Property;
+use ReflectionProperty;
 
 trait AsDTO
 {
@@ -41,7 +41,7 @@ trait AsDTO
 
     public static function fromRequest(Request $request, bool $useAll = false): static
     {
-        if ($useAll || !method_exists($request, 'validated')) {
+        if ($useAll || ! method_exists($request, 'validated')) {
             return static::fromCollection(
                 collect($request->all())
             );
@@ -68,7 +68,7 @@ trait AsDTO
 
     public static function fromCollection(Collection $collection): static
     {
-        $object = new static();
+        $object = new static;
         $collection->each(function ($value, $key) use (&$object) {
             (new Property($object, $key))->assign($value);
         });
@@ -78,10 +78,16 @@ trait AsDTO
 
     public function toArray(): array
     {
-        $attributes = (array) $this;
+        $attributes = [];
+        $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
 
-        foreach ($attributes as $key => $value) {
-            $attributes[$key] = $this->getArraybleValue($value);
+        foreach ($properties as $property) {
+            if (! $property->isInitialized($this)) {
+                continue;
+            }
+
+            $name = $property->getName();
+            $attributes[$name] = $this->getArraybleValue($this->$name);
         }
 
         return $attributes;
@@ -93,10 +99,11 @@ trait AsDTO
             foreach ($value as $subKey => $subValue) {
                 $value[$subKey] = $this->getArraybleValue($subValue);
             }
+
             return $value;
         }
 
-        if (!is_object($value)) {
+        if (! is_object($value)) {
             return $value;
         }
 

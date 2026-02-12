@@ -2,24 +2,24 @@
 
 namespace MohammedManssour\DTO\Tests\Concerns;
 
-use Mockery;
 use Carbon\Carbon;
-use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\Test;
-use MohammedManssour\DTO\Tests\Stubs\User;
-use MohammedManssour\DTO\Tests\Stubs\Status;
-use MohammedManssour\DTO\Tests\Stubs\UserData;
+use Illuminate\Support\Arr;
+use Mockery;
 use MohammedManssour\DTO\Tests\Stubs\BalanceData;
 use MohammedManssour\DTO\Tests\Stubs\FormRequest;
+use MohammedManssour\DTO\Tests\Stubs\Status;
+use MohammedManssour\DTO\Tests\Stubs\User;
+use MohammedManssour\DTO\Tests\Stubs\UserData;
 use MohammedManssour\DTO\Tests\Stubs\WalletData;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 class AsDTOTest extends TestCase
 {
     private array $data;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->data = [
@@ -34,13 +34,17 @@ class AsDTOTest extends TestCase
             'wallets' => [
                 WalletData::from([
                     'type' => 'bitcoin',
-                    'balance' => 1001
+                    'balance' => 1001,
                 ]),
                 [
                     'type' => 'usdollar',
-                    'balance' => 100000
+                    'balance' => 100000,
                 ],
-            ]
+            ],
+            'secrets' => [
+                'id' => 'id',
+                'secret' => 'secret',
+            ],
         ];
     }
 
@@ -97,7 +101,7 @@ class AsDTOTest extends TestCase
     #[Test]
     public function it_converts_model_to_dto()
     {
-        $model = (new User())->forceFill($this->data);
+        $model = (new User)->forceFill($this->data);
         $dto = UserData::fromModel($model);
 
         $this->assertDTO($dto);
@@ -110,7 +114,7 @@ class AsDTOTest extends TestCase
 
         $this->data['wallets'][0] = $this->data['wallets'][0]->toArray();
         $this->assertEquals(
-            Arr::except($this->data, 'registered_at'),
+            Arr::except($this->data, ['registered_at', 'secrets']),
             Arr::except($dto->toArray(), 'registered_at')
         );
 
@@ -138,7 +142,7 @@ class AsDTOTest extends TestCase
     {
         $data = UserData::fromArray([
             'name' => 'Mohammed Manssour',
-            'email' => null
+            'email' => null,
         ]);
 
         // native function
@@ -186,5 +190,8 @@ class AsDTOTest extends TestCase
         $this->assertEquals(1001, $dto->wallets[0]->balance);
         $this->assertEquals('usdollar', $dto->wallets[1]->type);
         $this->assertEquals(100000, $dto->wallets[1]->balance);
+
+        $this->assertEquals('id', $dto->getSecrets()->id);
+        $this->assertEquals('secret', $dto->getSecrets()->secret);
     }
 }
