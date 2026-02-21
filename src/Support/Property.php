@@ -54,6 +54,11 @@ class Property
     public function assign($value)
     {
         try {
+            if (!$value) {
+                $this->assignPlain($value);
+                return;
+            }
+
             $setterMethod = 'set' . Str::studly($this->name);
             if (method_exists($this->object, $setterMethod)) {
                 $this->object->{$setterMethod}($value);
