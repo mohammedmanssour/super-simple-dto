@@ -2,7 +2,6 @@
 
 namespace MohammedManssour\DTO\Support;
 
-use ReflectionType;
 use ReflectionProperty;
 use Illuminate\Support\Str;
 use MohammedManssour\DTO\Concerns\AsDTO;
@@ -23,25 +22,27 @@ class Property
         return once(fn() => $this->reflection()->getType());
     }
 
-    public function typeName(): string
+    public function typeName(): ?string
     {
-        return once(fn() => $this->type()->getName());
+        return once(fn() => $this->type()?->getName());
     }
 
     private function isEnum(): bool
     {
-        return enum_exists($this->typeName());
+        $typeName = $this->typeName();
+        return $typeName && enum_exists($typeName);
     }
 
     private function isDTO(): bool
     {
-        if ($this->type()?->isBuiltin()) {
+        $typeName = $this->typeName();
+        if (!$typeName || $this->type()?->isBuiltin()) {
             return false;
         }
 
         return in_array(
             AsDTO::class,
-            class_uses_recursive($this->typeName())
+            class_uses_recursive($typeName)
         );
     }
 
@@ -54,15 +55,18 @@ class Property
     public function assign($value)
     {
         try {
-            if (!$value) {
-                $this->assignPlain($value);
-                return;
-            }
-
             $setterMethod = 'set' . Str::studly($this->name);
             if (method_exists($this->object, $setterMethod)) {
                 $this->object->{$setterMethod}($value);
 
+                return;
+            }
+
+            // Validate property exists on the object - throws ReflectionException if not
+            $this->reflection();
+
+            if (!$value) {
+                $this->assignPlain($value);
                 return;
             }
 
@@ -82,7 +86,7 @@ class Property
             }
 
             $this->assignPlain($value);
-        } catch(ReflectionException $e) {}
+        } catch (ReflectionException) {}
     }
 
     private function assignEnum($value)
