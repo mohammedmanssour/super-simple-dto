@@ -32,6 +32,9 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Install dependencies
+        # bash on every OS: PowerShell strips the caret from the constraint,
+        # which turns "^13.0" into an exact "13.0" match and fails to resolve.
+        shell: bash
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction
