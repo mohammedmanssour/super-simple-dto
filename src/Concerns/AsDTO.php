@@ -79,7 +79,7 @@ trait AsDTO
     public function toArray(): array
     {
         $attributes = [];
-        $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $properties = (new \ReflectionClass($this))->getProperties(ReflectionProperty::IS_PUBLIC);
 
         foreach ($properties as $property) {
             if (! $property->isInitialized($this)) {

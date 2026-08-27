@@ -1,9 +1,11 @@
 <?php
 
 namespace MohammedManssour\DTO\Tests\Stubs;
+
 use MohammedManssour\DTO\Concerns\AsDTO;
 
-class Secrets {
+class Secrets
+{
     use AsDTO;
 
     public string $id;

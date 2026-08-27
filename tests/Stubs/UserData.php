@@ -25,11 +25,13 @@ class UserData
 
     protected Secrets $secrets;
 
-    public function setSecrets($secrets) {
+    public function setSecrets($secrets)
+    {
         $this->secrets = $secrets instanceof Secrets ? $secrets : Secrets::fromArray($secrets);
     }
 
-    public function getSecrets(): Secrets {
+    public function getSecrets(): Secrets
+    {
         return $this->secrets;
     }
 

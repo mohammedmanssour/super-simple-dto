@@ -2,11 +2,10 @@
 
 namespace MohammedManssour\DTO\Support;
 
-use ReflectionProperty;
 use Illuminate\Support\Str;
 use MohammedManssour\DTO\Concerns\AsDTO;
-use MohammedManssour\DTO\Support\MapInto;
 use ReflectionException;
+use ReflectionProperty;
 
 class Property
 {
@@ -14,29 +13,30 @@ class Property
 
     public function reflection(): ReflectionProperty
     {
-        return once(fn() => new ReflectionProperty($this->object, $this->name));
+        return once(fn () => new ReflectionProperty($this->object, $this->name));
     }
 
     private function type()
     {
-        return once(fn() => $this->reflection()->getType());
+        return once(fn () => $this->reflection()->getType());
     }
 
     public function typeName(): ?string
     {
-        return once(fn() => $this->type()?->getName());
+        return once(fn () => $this->type()?->getName());
     }
 
     private function isEnum(): bool
     {
         $typeName = $this->typeName();
+
         return $typeName && enum_exists($typeName);
     }
 
     private function isDTO(): bool
     {
         $typeName = $this->typeName();
-        if (!$typeName || $this->type()?->isBuiltin()) {
+        if (! $typeName || $this->type()?->isBuiltin()) {
             return false;
         }
 
@@ -49,13 +49,14 @@ class Property
     private function hasMapIntoAttribute(): bool
     {
         $attributes = $this->reflection()->getAttributes(MapInto::class);
+
         return count($attributes) > 0;
     }
 
     public function assign($value)
     {
         try {
-            $setterMethod = 'set' . Str::studly($this->name);
+            $setterMethod = 'set'.Str::studly($this->name);
             if (method_exists($this->object, $setterMethod)) {
                 $this->object->{$setterMethod}($value);
 
@@ -65,33 +66,38 @@ class Property
             // Validate property exists on the object - throws ReflectionException if not
             $this->reflection();
 
-            if (!$value) {
+            if (! $value) {
                 $this->assignPlain($value);
+
                 return;
             }
 
             if ($this->hasMapIntoAttribute()) {
                 $this->assignMapInto($value);
+
                 return;
             }
 
             if ($this->isEnum()) {
                 $this->assignEnum($value);
+
                 return;
             }
 
             if ($this->isDTO()) {
                 $this->assignDTO($value);
+
                 return;
             }
 
             $this->assignPlain($value);
-        } catch (ReflectionException) {}
+        } catch (ReflectionException) {
+        }
     }
 
     private function assignEnum($value)
     {
-        if (!($value instanceof \UnitEnum)) {
+        if (! ($value instanceof \UnitEnum)) {
             $typeName = $this->typeName();
             $value = $typeName::from($value);
         }
@@ -104,26 +110,27 @@ class Property
         $typeName = $this->typeName();
         if (is_object($value) && get_class($value) == $typeName) {
             $this->assignPlain($value);
+
             return;
         }
-
 
         $this->assignPlain($typeName::from($value));
     }
 
     private function assignMapInto($value)
     {
-        if (!$value) {
+        if (! $value) {
             $this->assignPlain($value);
+
             return;
         }
 
-        if (!is_iterable($value)) {
-            throw new \InvalidArgumentException("MapInto attribute can only be used with array values");
+        if (! is_iterable($value)) {
+            throw new \InvalidArgumentException('MapInto attribute can only be used with array values');
         }
 
         $attributes = $this->reflection()->getAttributes(MapInto::class);
-        $dtoClass =  $attributes[0]->newInstance()->class;
+        $dtoClass = $attributes[0]->newInstance()->class;
 
         $mappedArray = [];
         foreach ($value as $item) {
