@@ -8,6 +8,13 @@ Creating data transfer objects with the power of php objects. Simple, lightweigh
 
 This is a laravel package and `laravel/framework` is part of the package dependencies. Please, make sure you have no problem with that before using.
 
+## Requirements
+
+-   PHP 8.1 or higher
+-   Laravel 8 through 13
+
+Laravel 13 requires PHP 8.3 or higher. The test suite runs against Laravel 11, 12 and 13 on PHP 8.3 and 8.4.
+
 ## Why Bother.
 
 The spatie team has already created an awesome package that serves as a [great solution for DTO objects](https://github.com/spatie/laravel-data/blob/main/composer.json). But, for me, it's full of features that I don't use and it seems like an overkill for me when I just wanted simple solution for DTO work.

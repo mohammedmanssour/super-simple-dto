@@ -11,4 +11,4 @@ psalm.xml
 vendor
 .php-cs-fixer.cache
 .vscode
-
+.phpunit.cache
